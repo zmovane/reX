@@ -40,3 +40,19 @@ for {
     }
 }
 ```
+
+## Followers
+
+```golang
+var cursor *string
+for {
+    tweets, nextCursor := x.GetFollowersByScreenName("shareverse_", cursor)
+    cursor = nextCursor
+    if cursor == nil {
+        break
+    }
+    for _, tweet := range tweets {
+        println(tweet.ScreenName)
+    }
+}
+```
