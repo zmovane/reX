@@ -1,4 +1,4 @@
-module github.com/amovane/twitter-scraper
+module github.com/amovane/reversedX
 
 go 1.19
 

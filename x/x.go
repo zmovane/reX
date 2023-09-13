@@ -1,10 +1,11 @@
-package main
+package reversedX
 
 import (
 	"encoding/json"
 	"fmt"
 	"net/http"
 	urlutil "net/url"
+	"os"
 	"strings"
 
 	"github.com/go-resty/resty/v2"
@@ -25,7 +26,7 @@ func New(uname string, upwd string) X {
 	}
 }
 
-func (x *X) login() error {
+func (x *X) Login() error {
 	return x.scraper.Login(x.uname, x.upwd)
 }
 
@@ -36,6 +37,23 @@ func (x *X) IsLoggedIn() bool {
 func (x *X) GetFollowingsByScreenName(user string, cursor *string) (resp []Legacy, nextCursor *string) {
 	uid, _ := x.scraper.GetUserIDByScreenName(user)
 	return x.GetFollowingsById(uid, cursor)
+}
+
+func (x *X) SetCookies(cookiesPath string) (err error) {
+	var cookies []*http.Cookie
+	var f *os.File
+	if f, err = os.Open(cookiesPath); err != nil {
+		return err
+	}
+	json.NewDecoder(f).Decode(&cookies)
+	x.scraper.SetCookies(cookies)
+	return nil
+}
+
+func (x *X) SaveCookies(cookiesPath string) {
+	cookies := x.scraper.GetCookies()
+	data, _ := json.Marshal(cookies)
+	os.WriteFile(cookiesPath, data, 0644)
 }
 
 func (x *X) GetFollowingsById(uid string, cursor *string) (resp []Legacy, nextCursor *string) {
