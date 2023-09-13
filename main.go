@@ -2,7 +2,7 @@ package main
 
 import (
 	"fmt"
-	reversedX "github.com/amovane/reversedX/x"
+	reX "github.com/amovane/reX/x"
 	"os"
 	"regexp"
 )
@@ -12,7 +12,7 @@ var FlagEOF = regexp.MustCompile("^0\\|\\d+$")
 func main() {
 	uname := os.Getenv("USER_NAME")
 	upwd := os.Getenv("PASSWORD")
-	x := reversedX.New(uname, upwd)
+	x := reX.New(uname, upwd)
 	wd, _ := os.Getwd()
 	cookiesPath := fmt.Sprintf("%s/cookies.json", wd)
 	err := x.SetCookies(cookiesPath)

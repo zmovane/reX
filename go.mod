@@ -1,4 +1,4 @@
-module github.com/amovane/reversedX
+module github.com/amovane/reX
 
 go 1.19
 

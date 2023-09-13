@@ -1,4 +1,4 @@
-package reversedX
+package reX
 
 type T map[string]interface{}
 type StringMap map[string]string

@@ -1,4 +1,4 @@
-package reversedX
+package reX
 
 import (
 	"encoding/json"

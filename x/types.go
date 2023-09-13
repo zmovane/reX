@@ -1,4 +1,4 @@
-package reversedX
+package reX
 
 type Relation int64
 
