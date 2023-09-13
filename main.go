@@ -4,10 +4,7 @@ import (
 	"fmt"
 	reX "github.com/amovane/reX/x"
 	"os"
-	"regexp"
 )
-
-var FlagEOF = regexp.MustCompile("^0\\|\\d+$")
 
 func main() {
 	uname := os.Getenv("USER_NAME")
@@ -24,15 +21,10 @@ func main() {
 
 	// followings
 	var cursor *string
-	var EOF bool
 	for {
 		tweets, nextCursor := x.GetFollowingsByScreenName("shareverse_", cursor)
-		EOF = cursor != nil &&
-			nextCursor != nil &&
-			FlagEOF.Match([]byte(*cursor)) &&
-			FlagEOF.Match([]byte(*nextCursor))
 		cursor = nextCursor
-		if cursor == nil || EOF {
+		if cursor == nil {
 			break
 		}
 		for _, tweet := range tweets {

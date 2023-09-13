@@ -21,17 +21,11 @@ if err != nil || !x.IsLoggedIn() {
 ## Followings
 
 ```golang
-var FlagEOF = regexp.MustCompile("^0\\|\\d+$")
 var cursor *string
-var EOF bool
 for {
     tweets, nextCursor := x.GetFollowingsByScreenName("shareverse_", cursor)
-    EOF = cursor != nil &&
-        nextCursor != nil &&
-        FlagEOF.Match([]byte(*cursor)) &&
-        FlagEOF.Match([]byte(*nextCursor))
     cursor = nextCursor
-    if cursor == nil || EOF {
+    if cursor == nil {
         break
     }
     for _, tweet := range tweets {

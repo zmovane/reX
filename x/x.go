@@ -6,11 +6,14 @@ import (
 	"net/http"
 	urlutil "net/url"
 	"os"
+	"regexp"
 	"strings"
 
 	"github.com/go-resty/resty/v2"
 	SCRAPER "github.com/n0madic/twitter-scraper"
 )
+
+var FlagEOF = regexp.MustCompile("^0\\|\\d+$")
 
 type X struct {
 	uname   string
@@ -139,7 +142,7 @@ func (x *X) GetFollowingsById(uid string, cursor *string) (resp []Legacy, nextCu
 		for _, e := range i.Entries {
 			cursorType := e.Content.CursorType
 			if cursorType != nil && *cursorType == "Bottom" {
-				cursor = e.Content.Value
+				nextCursor = e.Content.Value
 			}
 			item := e.Content.ItemContent
 			if item == nil {
@@ -148,5 +151,12 @@ func (x *X) GetFollowingsById(uid string, cursor *string) (resp []Legacy, nextCu
 			resp = append(resp, item.UserResults.Result.Legacy)
 		}
 	}
-	return resp, cursor
+	EOF := cursor != nil &&
+		nextCursor != nil &&
+		FlagEOF.Match([]byte(*cursor)) &&
+		FlagEOF.Match([]byte(*nextCursor))
+	if EOF {
+		nextCursor = nil
+	}
+	return resp, nextCursor
 }
