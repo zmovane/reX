@@ -22,9 +22,9 @@ func main() {
 	// followings
 	var cursor *string
 	for {
-		tweets, nextCursor := x.GetFollowingsByScreenName("shareverse_", cursor)
+		tweets, nextCursor, err := x.GetFollowingsByScreenName("shareverse_", cursor)
 		cursor = nextCursor
-		if cursor == nil {
+		if cursor == nil || err != nil {
 			break
 		}
 		for _, tweet := range tweets {

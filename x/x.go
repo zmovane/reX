@@ -14,11 +14,35 @@ import (
 )
 
 var FlagEOF = regexp.MustCompile("^0\\|\\d+$")
+var DEFAULT_FEATURES = T{
+	"rweb_lists_timeline_redesign_enabled":                                    true,
+	"responsive_web_graphql_exclude_directive_enabled":                        true,
+	"verified_phone_label_enabled":                                            false,
+	"creator_subscriptions_tweet_preview_api_enabled":                         true,
+	"responsive_web_graphql_timeline_navigation_enabled":                      true,
+	"responsive_web_graphql_skip_user_profile_image_extensions_enabled":       false,
+	"tweetypie_unmention_optimization_enabled":                                true,
+	"responsive_web_edit_tweet_api_enabled":                                   true,
+	"graphql_is_translatable_rweb_tweet_is_translatable_enabled":              true,
+	"view_counts_everywhere_api_enabled":                                      true,
+	"longform_notetweets_consumption_enabled":                                 true,
+	"responsive_web_twitter_article_tweet_consumption_enabled":                false,
+	"tweet_awards_web_tipping_enabled":                                        false,
+	"freedom_of_speech_not_reach_fetch_enabled":                               true,
+	"standardized_nudges_misinfo":                                             true,
+	"tweet_with_visibility_results_prefer_gql_limited_actions_policy_enabled": true,
+	"longform_notetweets_rich_text_read_enabled":                              true,
+	"longform_notetweets_inline_media_enabled":                                true,
+	"responsive_web_media_download_video_enabled":                             false,
+	"responsive_web_enhance_cards_enabled":                                    false,
+}
 
 type X struct {
-	uname   string
-	upwd    string
-	scraper *SCRAPER.Scraper
+	uname     string
+	upwd      string
+	scraper   *SCRAPER.Scraper
+	cookies   string
+	csrfToken string
 }
 
 func New(uname string, upwd string) X {
@@ -37,9 +61,22 @@ func (x *X) IsLoggedIn() bool {
 	return x.scraper.IsLoggedIn()
 }
 
-func (x *X) GetFollowingsByScreenName(user string, cursor *string) (resp []Legacy, nextCursor *string) {
+func (x *X) GetFollowingsByScreenName(user string, cursor *string) (resp []Legacy, nextCursor *string, err error) {
 	uid, _ := x.scraper.GetUserIDByScreenName(user)
-	return x.GetFollowingsById(uid, cursor)
+	return x.GetRelationsById(uid, cursor, Following)
+}
+
+func (x *X) GetFollowersByScreenName(user string, cursor *string) (resp []Legacy, nextCursor *string, err error) {
+	uid, _ := x.scraper.GetUserIDByScreenName(user)
+	return x.GetRelationsById(uid, cursor, Follower)
+}
+
+func (x *X) GetFollowingsById(uid string, cursor *string) (resp []Legacy, nextCursor *string, err error) {
+	return x.GetRelationsById(uid, cursor, Following)
+}
+
+func (x *X) GetFollowersById(uid string, cursor *string) (resp []Legacy, nextCursor *string, err error) {
+	return x.GetRelationsById(uid, cursor, Follower)
 }
 
 func (x *X) SetCookies(cookiesPath string) (err error) {
@@ -59,83 +96,28 @@ func (x *X) SaveCookies(cookiesPath string) {
 	os.WriteFile(cookiesPath, data, 0644)
 }
 
-func (x *X) GetFollowingsById(uid string, cursor *string) (resp []Legacy, nextCursor *string) {
-	var csrfToken string
+func (x *X) GetRelationsById(uid string, cursor *string, relation Relation) (resp []Legacy, nextCursor *string, err error) {
 	cookies := Map(x.scraper.GetCookies(), func(field *http.Cookie) string {
 		if field.Name == "ct0" {
-			csrfToken = field.Value
+			x.csrfToken = field.Value
 		}
 		return field.String()
 	})
-	cookiesStr := strings.Join(cookies, ";")
+	x.cookies = strings.Join(cookies, ";")
 	variables := T{
 		"userId":                 uid,
-		"count":                  20,
+		"count":                  100,
 		"includePromotedContent": false,
 	}
 	if cursor != nil {
 		variables["cursor"] = *cursor
 	}
-	features := T{
-		"rweb_lists_timeline_redesign_enabled":                                    true,
-		"responsive_web_graphql_exclude_directive_enabled":                        true,
-		"verified_phone_label_enabled":                                            false,
-		"creator_subscriptions_tweet_preview_api_enabled":                         true,
-		"responsive_web_graphql_timeline_navigation_enabled":                      true,
-		"responsive_web_graphql_skip_user_profile_image_extensions_enabled":       false,
-		"tweetypie_unmention_optimization_enabled":                                true,
-		"responsive_web_edit_tweet_api_enabled":                                   true,
-		"graphql_is_translatable_rweb_tweet_is_translatable_enabled":              true,
-		"view_counts_everywhere_api_enabled":                                      true,
-		"longform_notetweets_consumption_enabled":                                 true,
-		"responsive_web_twitter_article_tweet_consumption_enabled":                false,
-		"tweet_awards_web_tipping_enabled":                                        false,
-		"freedom_of_speech_not_reach_fetch_enabled":                               true,
-		"standardized_nudges_misinfo":                                             true,
-		"tweet_with_visibility_results_prefer_gql_limited_actions_policy_enabled": true,
-		"longform_notetweets_rich_text_read_enabled":                              true,
-		"longform_notetweets_inline_media_enabled":                                true,
-		"responsive_web_media_download_video_enabled":                             false,
-		"responsive_web_enhance_cards_enabled":                                    false,
-	}
 	variablesJson, _ := json.Marshal(variables)
-	featuresJson, _ := json.Marshal(features)
+	featuresJson, _ := json.Marshal(DEFAULT_FEATURES)
 	query := fmt.Sprintf(`variables=%s&features=%s`, variablesJson, featuresJson)
 	values, _ := urlutil.ParseQuery(query)
-	url := fmt.Sprintf(`https://twitter.com/i/api/graphql/%s?%s`, Following.Path(), values.Encode())
-
-	var response Response
-	var err error
-	client := resty.New()
-	client.
-		R().
-		SetHeaders(
-			StringMap{
-				"authority":                 "twitter.com",
-				"accept":                    "*/*",
-				"accept-language":           "zh-CN,zh;q=0.9,en;q=0.8",
-				"authorization":             "Bearer AAAAAAAAAAAAAAAAAAAAANRILgAAAAAAnNwIzUejRCOuH5E6I8xnZz4puTs%3D1Zv7ttfk8LF81IUq16cHjhLTvJu4FA33AGWWjCpTnA",
-				"content-type":              "application/json",
-				"cookie":                    cookiesStr,
-				"sec-ch-ua":                 `"Chromium";v="116", "Not)A;Brand";v="24", "Google Chrome";v="116"`,
-				"sec-ch-ua-mobile":          "?0",
-				"sec-ch-ua-platform":        `"macOS"`,
-				"sec-fetch-dest":            "empty",
-				"sec-fetch-mode":            "cors",
-				"sec-fetch-site":            "same-origin",
-				"user-agent":                "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/116.0.0.0 Safari/537.36",
-				"x-client-transaction-id":   "b8qgMoxBUsxfsTLOsISkGvJ9/Atx8/2g/teNmizHQONJLNnUNCKMBxHt2eRlE6jkzOuM9G/tZ/mwb0KT9PAok5bnqm6vbg",
-				"x-client-uuid":             "cc8bdbff-b377-4ffd-b53e-5767f6e50ba4",
-				"x-csrf-token":              csrfToken,
-				"x-twitter-active-user":     "yes",
-				"x-twitter-auth-type":       "OAuth2Session",
-				"x-twitter-client-language": "en",
-			},
-		).
-		SetResult(&response).
-		SetError(&err).
-		Get(url)
-
+	url := fmt.Sprintf(`https://twitter.com/i/api/graphql/%s?%s`, relation.Path(), values.Encode())
+	response, err := x.GetRequest(url)
 	instructions := response.Data.User.Result.Timeline.Timeline.Instructions
 	resp = make([]Legacy, 0)
 	for _, i := range instructions {
@@ -158,5 +140,40 @@ func (x *X) GetFollowingsById(uid string, cursor *string) (resp []Legacy, nextCu
 	if EOF {
 		nextCursor = nil
 	}
-	return resp, nextCursor
+	return resp, nextCursor, err
+}
+
+func (x *X) GetRequest(url string) (Response, error) {
+	var response Response
+	var err error
+	client := resty.New()
+	client.
+		R().
+		SetHeaders(
+			StringMap{
+				"authority":                 "twitter.com",
+				"accept":                    "*/*",
+				"accept-language":           "zh-CN,zh;q=0.9,en;q=0.8",
+				"authorization":             "Bearer AAAAAAAAAAAAAAAAAAAAANRILgAAAAAAnNwIzUejRCOuH5E6I8xnZz4puTs%3D1Zv7ttfk8LF81IUq16cHjhLTvJu4FA33AGWWjCpTnA",
+				"content-type":              "application/json",
+				"cookie":                    x.cookies,
+				"sec-ch-ua":                 `"Chromium";v="116", "Not)A;Brand";v="24", "Google Chrome";v="116"`,
+				"sec-ch-ua-mobile":          "?0",
+				"sec-ch-ua-platform":        `"macOS"`,
+				"sec-fetch-dest":            "empty",
+				"sec-fetch-mode":            "cors",
+				"sec-fetch-site":            "same-origin",
+				"user-agent":                "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/116.0.0.0 Safari/537.36",
+				"x-client-transaction-id":   "b8qgMoxBUsxfsTLOsISkGvJ9/Atx8/2g/teNmizHQONJLNnUNCKMBxHt2eRlE6jkzOuM9G/tZ/mwb0KT9PAok5bnqm6vbg",
+				"x-client-uuid":             "cc8bdbff-b377-4ffd-b53e-5767f6e50ba4",
+				"x-csrf-token":              x.csrfToken,
+				"x-twitter-active-user":     "yes",
+				"x-twitter-auth-type":       "OAuth2Session",
+				"x-twitter-client-language": "en",
+			},
+		).
+		SetResult(&response).
+		SetError(&err).
+		Get(url)
+	return response, err
 }
