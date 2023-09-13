@@ -3,7 +3,11 @@
 [![go report card](https://goreportcard.com/badge/github.com/amovane/reX "go report card")](https://goreportcard.com/report/github.com/amovane/reX)
 [![MIT license](https://img.shields.io/badge/license-MIT-brightgreen.svg)](https://opensource.org/licenses/MIT)
 
-Reverse Engineered Twitter API
+<p align="center">
+    <img src="./twitter.png" height=150></img>
+</p>
+
+Since twitter dev removed the API for accessing user followers and following, developers have found it difficult to obtain this data. Here, I'm sharing my reverse engineering solution. If it's helpful to you, please let me know.
 
 ## Login
 
