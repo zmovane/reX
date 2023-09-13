@@ -1,5 +1,8 @@
 # reX
 
+[![go report card](https://goreportcard.com/badge/github.com/amovane/reX "go report card")](https://goreportcard.com/report/github.com/amovane/reX)
+[![MIT license](https://img.shields.io/badge/license-MIT-brightgreen.svg)](https://opensource.org/licenses/MIT)
+
 Reverse Engineered Twitter API
 
 ## Login
