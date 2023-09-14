@@ -24,11 +24,11 @@ func main() {
 	var tweets []reX.Legacy
 	for {
 		tweets, cursor, err = x.GetFollowingsByScreenName("shareverse_", cursor)
-		if cursor == nil || err != nil {
-			break
-		}
 		for _, tweet := range tweets {
 			println(tweet.ScreenName)
+		}
+		if cursor == nil || err != nil {
+			break
 		}
 	}
 }
