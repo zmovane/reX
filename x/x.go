@@ -117,7 +117,7 @@ func (x *X) GetRelationsById(uid string, cursor *string, relation Relation) (res
 	query := fmt.Sprintf(`variables=%s&features=%s`, variablesJson, featuresJson)
 	values, _ := urlutil.ParseQuery(query)
 	url := fmt.Sprintf(`https://twitter.com/i/api/graphql/%s?%s`, relation.Path(), values.Encode())
-	response, err := x.GetRequest(url)
+	response, err := x.RequestGet(url)
 	instructions := response.Data.User.Result.Timeline.Timeline.Instructions
 	resp = make([]Legacy, 0)
 	for _, i := range instructions {
@@ -143,7 +143,7 @@ func (x *X) GetRelationsById(uid string, cursor *string, relation Relation) (res
 	return resp, nextCursor, err
 }
 
-func (x *X) GetRequest(url string) (Response, error) {
+func (x *X) RequestGet(url string) (Response, error) {
 	var response Response
 	var err error
 	client := resty.New()
