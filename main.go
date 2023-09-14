@@ -21,9 +21,9 @@ func main() {
 
 	// followings
 	var cursor *string
+	var tweets []reX.Legacy
 	for {
-		tweets, nextCursor, err := x.GetFollowingsByScreenName("shareverse_", cursor)
-		cursor = nextCursor
+		tweets, cursor, err = x.GetFollowingsByScreenName("shareverse_", cursor)
 		if cursor == nil || err != nil {
 			break
 		}
