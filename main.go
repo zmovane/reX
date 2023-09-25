@@ -31,4 +31,8 @@ func main() {
 			break
 		}
 	}
+	uid, _ := x.GetUserIDByScreenName("jarredsumner")
+	uidOfFollower, _ := x.GetUserIDByScreenName("cybermageek")
+	isFollowing := x.IsFollowing(uid, uidOfFollower)
+	println("isFollowing", isFollowing)
 }

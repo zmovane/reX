@@ -56,3 +56,11 @@ for {
     }
 }
 ```
+
+## Is following
+
+```golang
+uid, _ := x.GetUserIDByScreenName("jarredsumner")
+uidOfFollower, _ := x.GetUserIDByScreenName("cybermageek")
+isFollowing := x.IsFollowing(uid, uidOfFollower)
+```

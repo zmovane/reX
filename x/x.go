@@ -78,6 +78,10 @@ func (x *X) SaveCookies(cookiesPath string) {
 	os.WriteFile(cookiesPath, data, 0644)
 }
 
+func (x *X) GetUserIDByScreenName(screenname string) (string, error) {
+	return x.scraper.GetUserIDByScreenName(screenname)
+}
+
 func (x *X) GetRelationsById(uid string, cursor *string, relation Relation) (resp []UserResults, nextCursor *string, err error) {
 	cookies := Map(x.scraper.GetCookies(), func(field *http.Cookie) string {
 		if field.Name == "ct0" {
