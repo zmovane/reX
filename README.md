@@ -29,11 +29,11 @@ if err != nil || !x.IsLoggedIn() {
 
 ```golang
 var cursor *string
-var tweets []reX.Legacy
+var tweets []reX.UserResults
 for {
     tweets, cursor, err = x.GetFollowingsByScreenName("shareverse_", cursor)
     for _, tweet := range tweets {
-        println(tweet.ScreenName)
+        println(tweet.Result.Legacy.ScreenName)
     }
     if cursor == nil || err != nil {
         break
@@ -45,11 +45,11 @@ for {
 
 ```golang
 var cursor *string
-var tweets []reX.Legacy
+var tweets []reX.UserResults
 for {
-    tweets, cursor, err = x.GetFollowersByScreenName("shareverse_", cursor)
+    tweets, cursor, err = x.GetFollowerssByScreenName("shareverse_", cursor)
     for _, tweet := range tweets {
-        println(tweet.ScreenName)
+        println(tweet.Result.Legacy.ScreenName)
     }
     if cursor == nil || err != nil {
         break

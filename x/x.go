@@ -61,24 +61,6 @@ func (x *X) IsLoggedIn() bool {
 	return x.scraper.IsLoggedIn()
 }
 
-func (x *X) GetFollowingsByScreenName(user string, cursor *string) (resp []Legacy, nextCursor *string, err error) {
-	uid, _ := x.scraper.GetUserIDByScreenName(user)
-	return x.GetRelationsById(uid, cursor, Following)
-}
-
-func (x *X) GetFollowersByScreenName(user string, cursor *string) (resp []Legacy, nextCursor *string, err error) {
-	uid, _ := x.scraper.GetUserIDByScreenName(user)
-	return x.GetRelationsById(uid, cursor, Follower)
-}
-
-func (x *X) GetFollowingsById(uid string, cursor *string) (resp []Legacy, nextCursor *string, err error) {
-	return x.GetRelationsById(uid, cursor, Following)
-}
-
-func (x *X) GetFollowersById(uid string, cursor *string) (resp []Legacy, nextCursor *string, err error) {
-	return x.GetRelationsById(uid, cursor, Follower)
-}
-
 func (x *X) SetCookies(cookiesPath string) (err error) {
 	var cookies []*http.Cookie
 	var f *os.File
@@ -96,7 +78,7 @@ func (x *X) SaveCookies(cookiesPath string) {
 	os.WriteFile(cookiesPath, data, 0644)
 }
 
-func (x *X) GetRelationsById(uid string, cursor *string, relation Relation) (resp []Legacy, nextCursor *string, err error) {
+func (x *X) GetRelationsById(uid string, cursor *string, relation Relation) (resp []UserResults, nextCursor *string, err error) {
 	cookies := Map(x.scraper.GetCookies(), func(field *http.Cookie) string {
 		if field.Name == "ct0" {
 			x.csrfToken = field.Value
@@ -119,7 +101,7 @@ func (x *X) GetRelationsById(uid string, cursor *string, relation Relation) (res
 	url := fmt.Sprintf(`https://twitter.com/i/api/graphql/%s?%s`, relation.Path(), values.Encode())
 	response, err := x.RequestGet(url)
 	instructions := response.Data.User.Result.Timeline.Timeline.Instructions
-	resp = make([]Legacy, 0)
+	resp = make([]UserResults, 0)
 	for _, i := range instructions {
 		for _, e := range i.Entries {
 			cursorType := e.Content.CursorType
@@ -130,7 +112,7 @@ func (x *X) GetRelationsById(uid string, cursor *string, relation Relation) (res
 			if item == nil {
 				continue
 			}
-			resp = append(resp, item.UserResults.Result.Legacy)
+			resp = append(resp, item.UserResults)
 		}
 	}
 	EOF := cursor != nil &&
