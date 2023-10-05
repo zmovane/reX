@@ -38,23 +38,23 @@ var DEFAULT_FEATURES = T{
 }
 
 type X struct {
-	uname     string
-	upwd      string
 	scraper   *SCRAPER.Scraper
 	cookies   string
 	csrfToken string
 }
 
-func New(uname string, upwd string) X {
+func New() X {
 	return X{
-		uname:   uname,
-		upwd:    upwd,
 		scraper: SCRAPER.New(),
 	}
 }
 
-func (x *X) Login() error {
-	return x.scraper.Login(x.uname, x.upwd)
+func (x *X) Login(uname string, upwd string) error {
+	return x.scraper.Login(uname, upwd)
+}
+
+func (x *X) LoginWithCode(uname string, upwd string, code string) error {
+	return x.scraper.Login(uname, upwd)
 }
 
 func (x *X) IsLoggedIn() bool {

@@ -9,13 +9,13 @@ import (
 func main() {
 	uname := os.Getenv("USER_NAME")
 	upwd := os.Getenv("PASSWORD")
-	x := reX.New(uname, upwd)
+	x := reX.New()
 	wd, _ := os.Getwd()
 	cookiesPath := fmt.Sprintf("%s/cookies.json", wd)
 	err := x.SetCookies(cookiesPath)
 	if err != nil || !x.IsLoggedIn() {
 		println("You must login first")
-		x.Login()
+		x.Login(uname, upwd)
 		x.SaveCookies(cookiesPath)
 	}
 
