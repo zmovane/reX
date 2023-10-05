@@ -49,12 +49,8 @@ func New() X {
 	}
 }
 
-func (x *X) Login(uname string, upwd string) error {
-	return x.scraper.Login(uname, upwd)
-}
-
-func (x *X) LoginWithCode(uname string, upwd string, code string) error {
-	return x.scraper.Login(uname, upwd)
+func (x *X) Login(args ...string) error {
+	return x.scraper.Login(args...)
 }
 
 func (x *X) IsLoggedIn() bool {
