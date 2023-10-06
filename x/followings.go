@@ -16,15 +16,16 @@ func (x *X) GetFollowingsById(uid string, cursor *string) (resp []UserResults, n
 func (x *X) IsFollowing(uid string, uidOfFollower string) bool {
 	var err error
 	var cursor *string
-	var followings []string
 	for {
 		var pagedUsers []UserResults
 		pagedUsers, cursor, err = x.GetFollowingsById(uidOfFollower, cursor)
 		ids := Map(pagedUsers, func(o UserResults) string { return o.Result.RESTID })
-		followings = append(followings, ids...)
+		if slices.Contains(ids, uid) {
+			return true
+		}
 		if cursor == nil || err != nil {
 			break
 		}
 	}
-	return slices.Contains(followings, uid)
+	return false
 }
