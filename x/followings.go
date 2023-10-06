@@ -4,7 +4,7 @@ import (
 	"golang.org/x/exp/slices"
 )
 
-const MAX_PAGE_QUERIES = 10
+const MAX_PAGE_QUERIES = 300
 
 func (x *X) GetFollowingsByScreenName(user string, cursor *string) (resp []UserResults, nextCursor *string, err error) {
 	uid, _ := x.scraper.GetUserIDByScreenName(user)
